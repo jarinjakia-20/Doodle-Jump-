@@ -13,7 +13,6 @@
     public abstract double calculatePay();
 }
 
-// Full-time Employee subclass
 class FullTimeEmployee extends Employee {
     private double fixedSalary;
 
@@ -28,7 +27,6 @@ class FullTimeEmployee extends Employee {
     }
 }
 
-// Part-time Employee subclass
 class PartTimeEmployee extends Employee {
     private double hourlyRate;
     private int hoursWorked;
@@ -45,7 +43,6 @@ class PartTimeEmployee extends Employee {
     }
 }
 
-// Contract Employee subclass
 class ContractEmployee extends Employee {
     private String projectName;
     private double contractAmount;
@@ -62,7 +59,6 @@ class ContractEmployee extends Employee {
     }
 }
 
-// Main class to test the implementation
 public class PracticeProblem08 {
     public static void main(String[] args) {
         Employee fullTimeEmp = new FullTimeEmployee("Alice", 101, "HR", 60000);
