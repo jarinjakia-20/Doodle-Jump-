@@ -26,6 +26,8 @@ public class DoodleJump extends JPanel implements Runnable, KeyListener {
     float velocityY = 0;
     boolean moveRight, moveLeft;
 
+    int score = 0;
+
     public DoodleJump() {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setFocusable(true);
@@ -56,7 +58,7 @@ public class DoodleJump extends JPanel implements Runnable, KeyListener {
     private void loadImages() {
         background = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
         Graphics2D gBg = background.createGraphics();
-        gBg.setPaint(Color.CYAN);
+        gBg.setPaint(Color.GRAY);
         gBg.fillRect(0, 0, WIDTH, HEIGHT);
 
         platformImg = new BufferedImage(68, 14, BufferedImage.TYPE_INT_ARGB);
@@ -66,7 +68,7 @@ public class DoodleJump extends JPanel implements Runnable, KeyListener {
 
         doodleImg = new BufferedImage(60, 60, BufferedImage.TYPE_INT_ARGB);
         Graphics2D gDoodle = doodleImg.createGraphics();
-        gDoodle.setPaint(Color.ORANGE);
+        gDoodle.setPaint(Color.BLACK);
         gDoodle.fillOval(0, 0, 60, 60);
     }
 
@@ -97,6 +99,7 @@ public class DoodleJump extends JPanel implements Runnable, KeyListener {
                     (doodleY + 60 <= p.y + 14) &&
                     velocityY > 0) {
                 velocityY = -10;
+                score += 10; // Increase score on bounce
             }
         }
 
@@ -126,17 +129,21 @@ public class DoodleJump extends JPanel implements Runnable, KeyListener {
             g2.drawImage(platformImg, p.x, p.y, null);
         }
 
-        Graphics g = getGraphics();
+        g2.setColor(Color.BLACK);
+        g2.setFont(new Font("Arial", Font.BOLD, 20));
+        g2.drawString("Score: " + score, 10, 25);
+
         if (gameOver) {
             g2.setColor(Color.BLACK);
             g2.setFont(new Font("Arial", Font.BOLD, 40));
             g2.drawString("GAME OVER", WIDTH / 2 - 120, HEIGHT / 2);
         }
+
+        Graphics g = getGraphics();
         if (g != null) {
             g.drawImage(view, 0, 0, null);
             g.dispose();
         }
-
     }
 
     @Override
@@ -165,5 +172,8 @@ public class DoodleJump extends JPanel implements Runnable, KeyListener {
     }
 
     @Override
-    public void keyTyped(KeyEvent e) {}
+    public void keyTyped(KeyEvent e) {
+    }
 }
+
+
