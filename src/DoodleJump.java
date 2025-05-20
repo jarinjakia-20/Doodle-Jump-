@@ -5,26 +5,52 @@ import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.util.Random;
 
-public class DoodleJump extends JPanel implements Runnable, KeyListener {
-    final int WIDTH = 400;
-    final int HEIGHT = 533;
-
-    boolean gameOver = false;
-    boolean isRunning;
-    Thread thread;
-    BufferedImage view;
-    BufferedImage background, platformImg, doodleImg;
-
-    class Platform {
-        int x, y;
+abstract class GameObject {
+    protected int x, y;
+    public int getX() {
+        return x;
     }
+    public int getY() {
+        return y;
+    }
+    public void setX(int x) {
+        this.x = x;
+    }
+    public void setY(int y) {
+        this.y = y;
+    }
+}
 
-    Platform[] platforms;
+class Platform extends GameObject {
+    public Platform(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+}
 
-    int doodleX = 100, doodleY = 100;
-    int baseHeight = 150;
-    float velocityY = 0;
-    boolean moveRight, moveLeft;
+public class DoodleJump extends JPanel implements Runnable, KeyListener {
+    private static final int WIDTH = 400;
+    private static final int HEIGHT = 533;
+    private static final int BASE_HEIGHT = 150;
+    private static final float GRAVITY = 0.2f;
+    private static final int PLATFORM_WIDTH = 68;
+    private static final int PLATFORM_HEIGHT = 14;
+    private static final int DOODLE_WIDTH = 60;
+    private static final int DOODLE_HEIGHT = 60;
+
+    private boolean gameOver = false;
+    private boolean isRunning;
+    private Thread thread;
+    private BufferedImage view;
+    private BufferedImage background, platformImg, doodleImg;
+
+    private Platform[] platforms;
+
+    private int doodleX = 100, doodleY = 100;
+    private float velocityY = 0;
+    private boolean moveRight, moveLeft;
+
+    private int score = 0;
 
     public DoodleJump() {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
@@ -59,24 +85,24 @@ public class DoodleJump extends JPanel implements Runnable, KeyListener {
         gBg.setPaint(Color.CYAN);
         gBg.fillRect(0, 0, WIDTH, HEIGHT);
 
-        platformImg = new BufferedImage(68, 14, BufferedImage.TYPE_INT_ARGB);
+        platformImg = new BufferedImage(PLATFORM_WIDTH, PLATFORM_HEIGHT, BufferedImage.TYPE_INT_ARGB);
         Graphics2D gPlat = platformImg.createGraphics();
         gPlat.setPaint(Color.GREEN);
-        gPlat.fillRect(0, 0, 68, 14);
+        gPlat.fillRect(0, 0, PLATFORM_WIDTH, PLATFORM_HEIGHT);
 
-        doodleImg = new BufferedImage(60, 60, BufferedImage.TYPE_INT_ARGB);
+        doodleImg = new BufferedImage(DOODLE_WIDTH, DOODLE_HEIGHT, BufferedImage.TYPE_INT_ARGB);
         Graphics2D gDoodle = doodleImg.createGraphics();
-        gDoodle.setPaint(Color.ORANGE);
-        gDoodle.fillOval(0, 0, 60, 60);
+        gDoodle.setPaint(Color.BLACK);
+        gDoodle.fillOval(0, 0, DOODLE_WIDTH, DOODLE_HEIGHT);
     }
 
     private void initializePlatforms() {
         platforms = new Platform[10];
         Random rand = new Random();
         for (int i = 0; i < platforms.length; i++) {
-            platforms[i] = new Platform();
-            platforms[i].x = rand.nextInt(WIDTH - 68);
-            platforms[i].y = rand.nextInt(HEIGHT);
+            int x = rand.nextInt(WIDTH - PLATFORM_WIDTH);
+            int y = rand.nextInt(HEIGHT);
+            platforms[i] = new Platform(x, y);
         }
     }
 
@@ -87,26 +113,27 @@ public class DoodleJump extends JPanel implements Runnable, KeyListener {
         if (doodleX > WIDTH) doodleX = 0;
         if (doodleX < 0) doodleX = WIDTH;
 
-        velocityY += 0.2;
+        velocityY += GRAVITY;
         doodleY += velocityY;
 
         for (Platform p : platforms) {
-            if ((doodleX + 50 > p.x) &&
-                    (doodleX + 10 < p.x + 68) &&
-                    (doodleY + 60 >= p.y) &&
-                    (doodleY + 60 <= p.y + 14) &&
+            if ((doodleX + 50 > p.getX()) &&
+                    (doodleX + 10 < p.getX() + PLATFORM_WIDTH) &&
+                    (doodleY + DOODLE_HEIGHT >= p.getY()) &&
+                    (doodleY + DOODLE_HEIGHT <= p.getY() + PLATFORM_HEIGHT) &&
                     velocityY > 0) {
                 velocityY = -10;
+                score += 10;
             }
         }
 
-        if (doodleY < baseHeight) {
-            doodleY = baseHeight;
+        if (doodleY < BASE_HEIGHT) {
+            doodleY = BASE_HEIGHT;
             for (Platform p : platforms) {
-                p.y -= (int) velocityY;
-                if (p.y > HEIGHT) {
-                    p.y = 0;
-                    p.x = new Random().nextInt(WIDTH - 68);
+                p.setY(p.getY() - (int) velocityY);
+                if (p.getY() > HEIGHT) {
+                    p.setY(0);
+                    p.setX(new Random().nextInt(WIDTH - PLATFORM_WIDTH));
                 }
             }
         }
@@ -123,20 +150,24 @@ public class DoodleJump extends JPanel implements Runnable, KeyListener {
         g2.drawImage(doodleImg, doodleX, doodleY, null);
 
         for (Platform p : platforms) {
-            g2.drawImage(platformImg, p.x, p.y, null);
+            g2.drawImage(platformImg, p.getX(), p.getY(), null);
         }
 
-        Graphics g = getGraphics();
+        g2.setColor(Color.BLACK);
+        g2.setFont(new Font("Arial", Font.BOLD, 20));
+        g2.drawString("Score: " + score, 10, 25);
+
         if (gameOver) {
             g2.setColor(Color.BLACK);
             g2.setFont(new Font("Arial", Font.BOLD, 40));
             g2.drawString("GAME OVER", WIDTH / 2 - 120, HEIGHT / 2);
         }
+
+        Graphics g = getGraphics();
         if (g != null) {
             g.drawImage(view, 0, 0, null);
             g.dispose();
         }
-
     }
 
     @Override
@@ -165,5 +196,6 @@ public class DoodleJump extends JPanel implements Runnable, KeyListener {
     }
 
     @Override
-    public void keyTyped(KeyEvent e) {}
+    public void keyTyped(KeyEvent e) {
+    }
 }
